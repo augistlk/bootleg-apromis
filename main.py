@@ -1,6 +1,6 @@
 import subprocess
 import random
-
+#variable "test" is path to the .cpp file
 def compileC(test: str):
     compile_result = subprocess.run(["g++", test, "-o", "hello"], capture_output=True, text=True)
 
@@ -17,14 +17,9 @@ def inputGenerator():
     variables = []
     #variables[x][y]  x is variable number, y is range(1 is from, 2 is to)
     for i in range(0,amountOfVariables):
-        temp = f.read(1)
-        while temp =='\n' or temp ==' ':
-            temp = f.read(1)
-        start = int(temp)
-        temp = f.read(1)
-        while temp =='\n' or temp ==' ':
-            temp = f.read(1)
-        end = int(temp)
+        line = f.readline()
+        start = int(line.split(" ")[0])
+        end = int(line.split(" ")[1])
         variables.append((start, end))
     f.close()
     output = open("test/data.txt", "w")
