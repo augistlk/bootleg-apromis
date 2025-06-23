@@ -1,2 +1,3 @@
 PyQt5==5.15.11
 #g++ on machine
+#only works on windows for now
