@@ -1,9 +1,9 @@
 import subprocess
 import random
 import os
-#variable fileLocation is path to the .cpp file
-def compileC(fileLocation: str, testType:str):
-    compile_result = subprocess.run(["g++", fileLocation, "-o", "test/a.exe"], capture_output=True, text=True)
+#variable fileName is the name of the .cpp file in the test/ directory
+def compileC(fileName: str, testType:str):
+    compile_result = subprocess.run(["g++", fileName, "-o", f"{testType}.exe"], capture_output=True, text=True, cwd="test")
 
     if compile_result.returncode != 0:
         print(f"Compilation of {testType} failed:")
@@ -11,10 +11,13 @@ def compileC(fileLocation: str, testType:str):
     else:
         print(f"Compilation {testType} successful!")
 
+#amountOfTestsForFile is 
+
 def inputGenerator():
     f = open("test/args.txt")
     global amountOfTests
     amountOfTests = int(f.readline())
+    amountOfTestsForFile = int(f.readline())
     amountOfVariables: int = int(f.readline())
     variables = []
     #variables[x][y]  x is variable number, y is range(1 is from, 2 is to)
@@ -25,11 +28,11 @@ def inputGenerator():
         variables.append((start, end))
     f.close()
     output = open("test/data.txt", "w")
-    output.write(f"{amountOfTests}\n")
-    for i in range(0,amountOfTests):
+    output.write(f"{amountOfTestsForFile}\n")
+    for i in range(0,amountOfTestsForFile):
         for j in range(0,amountOfVariables):
             output.write(f"{random.randint(variables[j][0], variables[j][1])}")
-            if j != amountOfVariables:
+            if j != amountOfVariables-1:
                 output.write(" ")
         output.write("\n")
     output.close()
@@ -40,34 +43,36 @@ def initializer():
     amountOfTests = int(f.readline())
     f.close()
 
-#testType must be either "Test" or "User"
-def runTest(fileLocation: str, testNumber: int, testType: str):
-    executableLocation = fileLocation.split("/")[0] + "/a.exe"
-    runResult = subprocess.run([executableLocation])
+#testType must be either "test" or "user"
+def runTest(testNumber: int, testType: str):
+    executableFilename = f"test/{testType}.exe"
+    runResult = subprocess.run([executableFilename], cwd="test")
     if runResult.returncode !=0:
         print(f"{testType} #{testNumber} didn't return 0")
-    if testType == "Test":
-            os.replace("result.txt", "test/testResult.txt")
-    else:
-        os.replace("result.txt", "test/result.txt")
+    if testType == "test":
+            os.replace("test/result.txt", "test/testResult.txt")
         
 
 def runAndCompareResults():
     global amountOfTests
-    compileC("test/test.cpp", "Test")
-    compileC("test/user.cpp", "User")
+    compileC("test.cpp", "test")
+    compileC("user.cpp", "user")
+    testLog = open("testLog.txt", "w")
     for i in range(0, amountOfTests):
         inputGenerator()
-        runTest("test/test.cpp", i+1, "Test")
-        runTest("test/user.cpp", i+1, "User")
+        runTest(i+1, "test")
+        runTest(i+1, "user")
         testResult = open("test/testResult.txt", "r")
         userResult = open("test/result.txt", "r")
         if testResult.read() == userResult.read():
             print(f"Test #{i+1} passed")
+            testLog.write(f"Test #{i+1} passed\n")
         else:
             print(f"Test #{i+1} failed")
+            testLog.write(f"Test #{i+1} failed\n")
         testResult.close()
         userResult.close()
+    testLog.close()
 
 def main():
     initializer()
