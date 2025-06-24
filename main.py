@@ -2,14 +2,14 @@ import subprocess
 import random
 import os
 #variable fileLocation is path to the .cpp file
-def compileC(fileLocation: str, test: int, testType:str):
+def compileC(fileLocation: str, testType:str):
     compile_result = subprocess.run(["g++", fileLocation, "-o", "test/a.exe"], capture_output=True, text=True)
 
     if compile_result.returncode != 0:
-        print(f"Compilation of {testType} #{test} failed:")
+        print(f"Compilation of {testType} failed:")
         print(compile_result.stderr)
     else:
-        print(f"Compilation {testType} #{test} successful!")
+        print(f"Compilation {testType} successful!")
 
 def inputGenerator():
     f = open("test/args.txt")
@@ -34,9 +34,14 @@ def inputGenerator():
         output.write("\n")
     output.close()
 
+def initializer():
+    f = open("test/args.txt")
+    global amountOfTests
+    amountOfTests = int(f.readline())
+    f.close()
+
 #testType must be either "Test" or "User"
-def compileAndRun(fileLocation: str, testNumber: int, testType: str):
-    compileC(fileLocation, testNumber, testType)
+def runTest(fileLocation: str, testNumber: int, testType: str):
     executableLocation = fileLocation.split("/")[0] + "/a.exe"
     runResult = subprocess.run([executableLocation])
     if runResult.returncode !=0:
@@ -49,9 +54,12 @@ def compileAndRun(fileLocation: str, testNumber: int, testType: str):
 
 def runAndCompareResults():
     global amountOfTests
+    compileC("test/test.cpp", "Test")
+    compileC("test/user.cpp", "User")
     for i in range(0, amountOfTests):
-        compileAndRun("test/test.cpp", i+1, "Test")
-        compileAndRun("test/user.cpp", i+1, "User")
+        inputGenerator()
+        runTest("test/test.cpp", i+1, "Test")
+        runTest("test/user.cpp", i+1, "User")
         testResult = open("test/testResult.txt", "r")
         userResult = open("test/result.txt", "r")
         if testResult.read() == userResult.read():
@@ -62,7 +70,7 @@ def runAndCompareResults():
         userResult.close()
 
 def main():
-    inputGenerator()
+    initializer()
     runAndCompareResults()
 
 main()
