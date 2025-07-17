@@ -1,6 +1,7 @@
 import subprocess
 import random
 import os
+import string
 #variable fileName is the name of the .cpp file in the test/ directory
 def compileC(fileName: str, testType:str):
     compile_result = subprocess.run(["g++", fileName, "-o", f"{testType}.exe"], capture_output=True, text=True, cwd="test")
@@ -8,6 +9,8 @@ def compileC(fileName: str, testType:str):
     if compile_result.returncode != 0:
         print(f"Compilation of {testType} failed:")
         print(compile_result.stderr)
+        print("\nProcess terminated due to abnormal compilation")
+        exit()
     else:
         print(f"Compilation {testType} successful!")
 
@@ -20,19 +23,35 @@ def inputGenerator():
     amountOfTestsForFile = int(f.readline())
     amountOfVariables: int = int(f.readline())
     variables = []
-    #variables[x][y]  x is variable number, y is range(1 is from, 2 is to)
+    allowedTypes = ['int', 'string']
+    #variables[i][x] i is index, x when 0 is type, if type is string 1 is length, else 1 is range from, 2 is range to
     for i in range(0,amountOfVariables):
         line = f.readline()
-        start = int(line.split(" ")[0])
-        end = int(line.split(" ")[1])
-        variables.append((start, end))
+        type = line.split(" ")[0]
+        if type not in allowedTypes:
+            print(f"Unexpected type '{type}'. Only supported types are so far 'int' and 'string'\n")
+            print("Terminating process")
+            exit()
+        start = int(line.split(" ")[1])
+        if type != "string":
+            end = int(line.split(" ")[2])
+        else:
+            end = 0
+        variables.append((type, start, end))
     f.close()
     output = open("test/data.txt", "w")
     output.write(f"{amountOfTestsForFile}\n")
     for i in range(0,amountOfTestsForFile):
-        for j in range(0,amountOfVariables):
-            output.write(f"{random.randint(variables[j][0], variables[j][1])}")
-            if j != amountOfVariables-1:
+        for j in range(0, amountOfVariables):
+            if variables[j][0] == "string":
+                writeVariable = ''.join(random.choices(string.ascii_letters, k=variables[j][1]))
+            elif variables[j][0] == "int":
+                writeVariable = random.randint(variables[j][1], variables[j][2])
+            else:
+                print(f"Unexpected type {variables[j][0]}. Only supported types are so far int and string")
+                break
+            output.write(f"{writeVariable}")
+            if j != amountOfVariables:
                 output.write(" ")
         output.write("\n")
     output.close()
@@ -49,6 +68,8 @@ def runTest(testNumber: int, testType: str):
     runResult = subprocess.run([executableFilename], cwd="test")
     if runResult.returncode !=0:
         print(f"{testType} #{testNumber} didn't return 0")
+        print("\n Process terminated due to abnormal execution of test")
+        exit()
     if testType == "test":
             os.replace("test/result.txt", "test/testResult.txt")
         
