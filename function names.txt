@@ -1,0 +1,13 @@
+tests = how many tests will be run
+variables = how many variables will there be
+headervariables = how many variables in header
+
+Header variable types:
+    timesrepeated = how many times will the variables be repeated
+    int
+
+Variable types:
+    int
+    string
+
+Header is the first line of input (usually to signal how many times will the variables be repeated or extra arguments for the program)
